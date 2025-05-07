@@ -1,65 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <prompts>
 
-    <prompt id="generate-questions" language="sv">
-        Skapa %d quizfrågor på svenska till kursen '%s' baserat på följande text. Alla frågor och svar ska vara skrivna på svenska, oavsett vilket språk den inmatade texten är på.
+<prompt id="generate-questions" language="sv">
+    Skapa %d quizfrågor på svenska till kursen '%s' baserat på följande text. Alla frågor och svar ska vara skrivna på svenska, oavsett vilket språk den inmatade texten är på.
 
-        %s
+    %s
 
-        Varje fråga ska ha:
-        - Ett korrekt svar
-        - Tre felaktiga svarsalternativ
+    Varje fråga ska ha:
+    - Ett korrekt svar
+    - Tre felaktiga svarsalternativ
 
-        Returnera i följande JSON-format:
+    Returnera ENDAST en JSON-array enligt EXAKT formatet nedan. Skriv INTE någon förklaring, kommentar eller text utanför arrayen.
+    Om du inte kan generera frågorna, returnera istället ett JSON-objekt med ett tydligt felmeddelande, t.ex.:
+    { "error": "Kunde inte generera frågor" }
 
-        [
-        {
+    KORREKT output:
+    [
+      {
         "questionText": "...",
         "courseName": "%s",
         "questionNumber": 1,
         "options": [
-        {
-        "optionLabel": "A",
-        "optionText": "...",
-        "isCorrect": true,
-        "language": "sv",
-        "courseName": "%s"
-        },
-        …
+          {
+            "optionLabel": "A",
+            "optionText": "...",
+            "isCorrect": true,
+            "language": "sv",
+            "courseName": "%s"
+          }
         ]
-        }
-        ]
-    </prompt>
+      }
+    ]
 
-    <prompt id="generate-questions" language="en">
-        Create %d quiz questions in English for the course '%s' based on the following text. All questions and answers must be written in English, regardless of the language of the input text.
+    FEL output (gör INTE så):
+    Förklaring: Här är dina frågor
+    [ ... ]
+    eller
+    [ ... ]
+    Någon kommentar efteråt
+</prompt>
 
-        %s
+<prompt id="generate-questions" language="en">
+    Create %d quiz questions in English for the course '%s' based on the following text. All questions and answers must be written in English, regardless of the input text's language.
 
-        Each question should have:
-        - One correct answer
-        - Three incorrect alternatives
+    %s
 
-        Return in the following JSON format:
+    Each question must have:
+    - One correct answer
+    - Three incorrect alternatives
 
-        [
-        {
+    Return ONLY a JSON array in the EXACT format below. Do NOT include any explanation, comments, or text outside the array.
+    If you cannot generate the questions, instead return a JSON object with a clear error message, e.g.:
+    { "error": "Could not generate questions" }
+
+    CORRECT output:
+    [
+      {
         "questionText": "...",
         "courseName": "%s",
         "questionNumber": 1,
         "options": [
-        {
-        "optionLabel": "A",
-        "optionText": "...",
-        "isCorrect": true,
-        "language": "en",
-        "courseName": "%s"
-        },
-        …
+          {
+            "optionLabel": "A",
+            "optionText": "...",
+            "isCorrect": true,
+            "language": "en",
+            "courseName": "%s"
+          }
         ]
-        }
-        ]
-    </prompt>
+      }
+    ]
+
+    INCORRECT output (do NOT do this):
+    Explanation: Here are your questions
+    [ ... ]
+    or
+    [ ... ]
+    Any comment afterwards
+</prompt>
 
     <prompt id="regenerate-options" language="sv">
         Du är en lärare som skapar flervalsfrågor för kursen "%s".
