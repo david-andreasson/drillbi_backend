@@ -22,6 +22,8 @@ public class User {
     @Column(nullable = false, unique = true)
     private String username;
 
+    @Column(nullable = false, unique = true)
+    private String email;
 
     @Column(nullable = false)
     private String password;
@@ -40,4 +42,13 @@ public class User {
 
     @Column(name = "user_group")
     private String userGroup;
+
+    @Column(name = "is_premium", nullable = false)
+    private boolean isPremium = false;
+
+    @Column(name = "stripe_customer_id")
+    private String stripeCustomerId;
+
+    @Column(name = "stripe_subscription_id")
+    private String stripeSubscriptionId;
 }

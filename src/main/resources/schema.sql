@@ -36,7 +36,10 @@ CREATE TABLE IF NOT EXISTS USERS (
                                      first_name VARCHAR(255),
                                      last_name VARCHAR(255),
                                      role VARCHAR(50) NOT NULL,
-                                     user_group VARCHAR(50)
+                                     user_group VARCHAR(50),
+                                     is_premium BOOLEAN NOT NULL DEFAULT FALSE,
+                                     stripe_customer_id VARCHAR(255),
+                                     stripe_subscription_id VARCHAR(255)
 );
 
 -- 5. Quiz Session table
