@@ -56,16 +56,6 @@ cmake-build-*/
 # IntelliJ
 out/
 
-#Environment
-.env
-.env.production
-
-#Target
-target/*
-
-quiz_api_dev.trace.db
-quiz_api_dev.db
-
 # mpeltonen/sbt-idea plugin
 .idea_modules/
 
@@ -228,5 +218,10 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+#Environment Variables
+.env
+
+#Logs
+*.log
+
 # End of https://www.toptal.com/developers/gitignore/api/java,intellij+all,visualstudiocode,macos,windows,notepadpp,vim
-/data/quiz_api_dev.trace.db
