@@ -2,7 +2,8 @@ FROM amazoncorretto:21-alpine as builder
 
 WORKDIR /app
 COPY . .
-RUN ./mvnw clean package -DskipTests
+RUN apk add --no-cache maven
+RUN mvn clean package -DskipTests
 
 FROM amazoncorretto:21-alpine
 WORKDIR /app
