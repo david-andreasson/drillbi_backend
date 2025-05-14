@@ -55,8 +55,8 @@ public class StripeController {
         SessionCreateParams params =
                 SessionCreateParams.builder()
                         .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-                        .setSuccessUrl("http://localhost:5173/profil?success=true&session_id={CHECKOUT_SESSION_ID}")
-                        .setCancelUrl("http://localhost:5173/profil?canceled=true")
+                        .setSuccessUrl("https://drillbi.se/profil?success=true&session_id={CHECKOUT_SESSION_ID}")
+                        .setCancelUrl("https://drillbi.se/profil?canceled=true")
                         .addLineItem(
                                 SessionCreateParams.LineItem.builder()
                                         .setQuantity(1L)

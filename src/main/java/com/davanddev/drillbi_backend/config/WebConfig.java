@@ -24,7 +24,7 @@ public class WebConfig implements WebMvcConfigurer {
 
         } else {
             // Production – Allow local and production
-            registration.allowedOriginPatterns("http://localhost:*", "https://david-andreasson.github.io");
+            registration.allowedOriginPatterns("https://drillbi.se", "https://drillbi.com");
 
         }
     }
