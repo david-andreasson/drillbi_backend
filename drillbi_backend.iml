@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="AdditionalModuleElements">
+    <content url="file://$MODULE_DIR$" dumb="true">
+      <excludeFolder url="file://$MODULE_DIR$/.idea/dataSources" />
+      <excludeFolder url="file://$MODULE_DIR$/bin/.idea/dataSources" />
+      <excludeFolder url="file://$MODULE_DIR$/bin/target/classes" />
+      <excludeFolder url="file://$MODULE_DIR$/bin/target/generated-sources" />
+      <excludeFolder url="file://$MODULE_DIR$/bin/target/maven-status" />
+      <excludeFolder url="file://$MODULE_DIR$/bin/target/test-classes" />
+    </content>
+  </component>
+</module>

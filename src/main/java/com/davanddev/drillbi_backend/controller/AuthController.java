@@ -42,19 +42,26 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
         logger.info("Attempting authentication for user {}", authRequest.getUsername());
-
-        // 1. Authenticate
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        authRequest.getUsername(),
-                        authRequest.getPassword()
-                )
-        );
-        logger.info("Authentication successful");
+        try {
+            // 1. Authenticate
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authRequest.getUsername(),
+                            authRequest.getPassword()
+                    )
+            );
+            logger.info("Authentication successful for user {}", authRequest.getUsername());
+        } catch (Exception ex) {
+            logger.warn("Authentication failed for user {}: {}", authRequest.getUsername(), ex.getMessage());
+            throw ex;
+        }
 
         // 2. Fetch user details
         User user = userRepository.findByUsername(authRequest.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElseThrow(() -> {
+                    logger.warn("User not found in database: {}", authRequest.getUsername());
+                    return new UsernameNotFoundException("User not found");
+                });
 
         // 3. Create JWT with extra claims
         Key key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
@@ -78,5 +85,12 @@ public class AuthController {
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
         return ResponseEntity.ok(response);
+    }
+
+    @ExceptionHandler({ org.springframework.security.authentication.BadCredentialsException.class, UsernameNotFoundException.class })
+    public ResponseEntity<?> handleAuthExceptions(Exception ex) {
+        logger.warn("Authentication error: {}", ex.getMessage());
+        return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED)
+                .body(java.util.Map.of("error", "Felaktigt användarnamn eller lösenord"));
     }
 }
