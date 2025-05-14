@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prompts>
+
+<prompt id="generate-questions" language="sv">
+    Skapa %d quizfrågor på svenska till kursen '%s' baserat på följande text. Alla frågor och svar ska vara skrivna på svenska, oavsett vilket språk den inmatade texten är på.
+
+    %s
+
+    Varje fråga ska ha:
+    - Ett korrekt svar
+    - Tre felaktiga svarsalternativ
+
+    Returnera ENDAST en JSON-array enligt EXAKT formatet nedan. Skriv INTE någon förklaring, kommentar eller text utanför arrayen.
+    Om du inte kan generera frågorna, returnera istället ett JSON-objekt med ett tydligt felmeddelande, t.ex.:
+    { "error": "Kunde inte generera frågor" }
+
+    KORREKT output:
+    [
+      {
+        "questionText": "...",
+        "courseName": "%s",
+        "questionNumber": 1,
+        "options": [
+          {
+            "optionLabel": "A",
+            "optionText": "...",
+            "isCorrect": true,
+            "language": "sv",
+            "courseName": "%s"
+          }
+        ]
+      }
+    ]
+
+    FEL output (gör INTE så):
+    Förklaring: Här är dina frågor
+    [ ... ]
+    eller
+    [ ... ]
+    Någon kommentar efteråt
+</prompt>
+
+<prompt id="generate-questions" language="en">
+    Create %d quiz questions in English for the course '%s' based on the following text. All questions and answers must be written in English, regardless of the input text's language.
+
+    %s
+
+    Each question must have:
+    - One correct answer
+    - Three incorrect alternatives
+
+    Return ONLY a JSON array in the EXACT format below. Do NOT include any explanation, comments, or text outside the array.
+    If you cannot generate the questions, instead return a JSON object with a clear error message, e.g.:
+    { "error": "Could not generate questions" }
+
+    CORRECT output:
+    [
+      {
+        "questionText": "...",
+        "courseName": "%s",
+        "questionNumber": 1,
+        "options": [
+          {
+            "optionLabel": "A",
+            "optionText": "...",
+            "isCorrect": true,
+            "language": "en",
+            "courseName": "%s"
+          }
+        ]
+      }
+    ]
+
+    INCORRECT output (do NOT do this):
+    Explanation: Here are your questions
+    [ ... ]
+    or
+    [ ... ]
+    Any comment afterwards
+</prompt>
+
+    <prompt id="regenerate-options" language="sv">
+        Du är en lärare som skapar flervalsfrågor för kursen "%s".
+        Här är bakgrundstexten som frågan ska baseras på:
+        %s
+
+        Här är en befintlig fråga:
+        Fråga: "%s"
+
+        Generera exakt fyra svarsalternativ:
+        - Ett korrekt svar (baserat på bakgrundstexten)
+        - Tre felaktiga, men trovärdiga svar
+
+        Returnera i följande JSON-format:
+
+        [
+        {
+        "optionLabel": "A",
+        "optionText": "Svar 1",
+        "isCorrect": true/false,
+        "language": "sv",
+        "courseName": "%s"
+        },
+        …
+        ]
+    </prompt>
+
+    <prompt id="regenerate-options" language="en">
+        You are a teacher creating multiple-choice questions for the course "%s".
+        Here is the background text the question should be based on:
+        %s
+
+        Here is an existing question:
+        Question: "%s"
+
+        Generate exactly four answer options:
+        - One correct answer (based on the background text)
+        - Three incorrect but plausible answers
+
+        Return in the following JSON format:
+
+        [
+        {
+        "optionLabel": "A",
+        "optionText": "Answer 1",
+        "isCorrect": true/false,
+        "language": "en",
+        "courseName": "%s"
+        },
+        …
+        ]
+    </prompt>
+
+    <prompt id="regenerate-question" language="sv">
+        Du är en lärare som omformulerar quizfrågor för kursen "%s".
+        Här är bakgrundstexten:
+        %s
+
+        Omformulera följande fråga baserat på bakgrundstexten:
+        "%s"
+
+        Generera en ny quizfråga och svarsalternativ som är relevanta för texten ovan.
+        Returnera exakt EN (1) fråga i arrayen nedan, i följande JSON-format:
+        [
+        {
+        "questionText": "...",
+        "courseName": "%s",
+        "questionNumber": 1,
+        "options": [
+        {
+        "optionLabel": "A",
+        "optionText": "...",
+        "isCorrect": true,
+        "language": "sv",
+        "courseName": "%s"
+        },
+        …
+        ]
+        }
+        ]
+    </prompt>
+
+    <prompt id="regenerate-question" language="en">
+        You are a teacher who reformulates quiz questions for the course "%s".
+        Here is the background text:
+        %s
+
+        Reformulate the following question based on the background text:
+        "%s"
+
+        Generate a new quiz question and answer options that are relevant to the above text.
+        Return EXACTLY ONE (1) question in the array below, in the following JSON format:
+        [
+        {
+        "questionText": "...",
+        "courseName": "%s",
+        "questionNumber": 1,
+        "options": [
+        {
+        "optionLabel": "A",
+        "optionText": "...",
+        "isCorrect": true,
+        "language": "en",
+        "courseName": "%s"
+        },
+        …
+        ]
+        }
+        ]
+    </prompt>
+
+    <prompt id="system" language="sv">
+        Du är en AI-assistent som genererar quizfrågor i JSON-format. Skriv inga förklaringar eller kommentarer.
+        Returnera endast JSON-strukturer i rätt format.
+    </prompt>
+
+    <prompt id="system" language="en">
+        You are an AI-assistant that generates quiz content in JSON format. Do not include explanations or comments.
+        Only return valid JSON structures.
+    </prompt>
+
+    <prompt id="ai-explanation" language="sv">
+        Förklara detta koncept från kursen "%s" på ett tydligt och enkelt sätt. Ditt svar ska vara uppdelat i korta stycken. Efter varje stycke, gör två riktiga radbrytningar (tryck Enter två gånger) för bättre läsbarhet. Håll svaret kortfattat och under sex meningar sammanlagt. Det rätta svaret är: %s. Fråga: %s
+    </prompt>
+
+    <prompt id="ai-explanation-strict" language="sv">
+        Du är en hjälpsam AI-lärare. Använd endast den givna bakgrundstexten ("sourceText") för att förklara varför det rätta svaret är korrekt. Utgå alltid från den givna bakgrundstexten och inled din förklaring med att hänvisa till denna text, inte till kursen eller kursnamnet.
+        Du får INTE börja din förklaring med “I kursen ...” eller liknande. Om du ändå använder kursnamnet i början, är svaret felaktigt.
+        Exempel på korrekt inledning: “I bakgrundstexten som frågan bygger på ...”
+        Exempel på felaktig inledning (undvik!): “I kursen host-tiger ...”
+        Om du inte hittar relevant information i texten, svara exakt: "Jag kan tyvärr inte hjälpa dig med en förklaring eftersom svaret inte finns i den tillgängliga texten."
+        Förklara tydligt varför just detta är det rätta svaret, och ge gärna ett konkret exempel eller resonemang från bakgrundstexten.
+        Separera stycken med två tomma rader.
+        Om det finns vanliga missuppfattningar, förklara kort varför de andra alternativen är mindre lämpliga.
+        Ditt svar ska vara uppdelat i korta stycken och under sex meningar sammanlagt.
+
+        Bakgrundstext:
+        %s
+
+        Det rätta svaret är: %s.
+        Fråga: %s
+    </prompt>
+
+    <prompt id="ai-explanation-strict" language="en">
+        You are a helpful AI teacher. Use only the given background text ("sourceText") to explain why the correct answer is correct. Always base your explanation on the given background text and begin your explanation by referring to this text, not to the course or its name.
+        You MUST NOT begin your explanation with “In the course ...”, the course name, or similar. If you still use the course name at the start, the answer is incorrect.
+        Example of a correct opening: “In the background text that the question is based on ...”
+        Example of an incorrect opening (avoid!): “In the course host-tiger ...”
+        If you cannot find relevant information in the text, reply exactly: "I'm sorry, I can't help you with an explanation because the answer is not found in the available text."
+        Clearly explain why this is the correct answer, and if possible, provide a concrete example or reasoning from the background text.
+        Avoid simply describing the course or question in general – focus on motivating the specific answer.
+        If possible, refer to specific parts or phrases in the background text that support your explanation.
+        Separate paragraphs with two blank lines.
+        If there are common misconceptions, briefly explain why the other options are less appropriate.
+        Your answer should be divided into short paragraphs and kept under six sentences in total.
+
+        Background text:
+        %s
+
+        The correct answer is: %s.
+        Question: %s
+    </prompt>
+
+    <prompt id="ai-explanation" language="en">
+        Explain this concept from the course "%s" in a clear and simple way. Your answer must be divided into short paragraphs. After each paragraph, insert two real line breaks (press Enter twice) for better readability. Keep the explanation concise and under six sentences in total. The correct answer is: %s. Question: %s
+    </prompt>
+
+    <prompt id="estimate-question-potential" language="sv">
+        Analysera följande text och uppskatta hur många unika, meningsfulla quizfrågor (med fyra svarsalternativ vardera) som kan genereras utifrån innehållet. Ta hänsyn till om texten är faktabaserad, teknisk, berättande eller av annan typ, och om det är möjligt för dig att skapa frågor baserat på din egen kunskap om ämnet. Om texten är vag, subjektiv eller saknar faktainnehåll, returnera ett lägre tal. Returnera endast ett heltal.
+        TEXT:
+        %s
+    </prompt>
+
+    <prompt id="estimate-question-potential" language="en">
+        Analyze the following text and estimate how many unique, meaningful quiz questions (with four answer options each) can be generated based on the content. Consider whether the text is factual, technical, narrative, or of another type, and whether it is possible for you to generate questions based on your own knowledge of the subject. If the text is vague, subjective, or lacks factual content, return a lower number. Return only an integer.
+        TEXT:
+        %s
+    </prompt>
+
+</prompts>
