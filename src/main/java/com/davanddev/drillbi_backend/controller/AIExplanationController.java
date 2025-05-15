@@ -42,11 +42,14 @@ public class AIExplanationController {
         QuestionDTO question = new ObjectMapper().convertValue(questionObj, QuestionDTO.class);
 
         String username = (principal != null) ? principal.getSubject() : "devUser";
-        if (dailyAIUsageService.hasExceededDailyLimit(username)) {
-            String msg = lang.equalsIgnoreCase("en")
-                    ? "You have reached your free daily limit for AI requests. Please try again tomorrow."
-                    : "Du har uppnått din gräns för gratis AI-anrop för dagen. Imorgon får du 5 nya anrop.";
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(msg);
+        String role = (principal != null) ? principal.getClaimAsString("role") : null;
+        if (role == null || !role.equalsIgnoreCase("ADMIN")) {
+            if (dailyAIUsageService.hasExceededDailyLimit(username)) {
+                String msg = lang.equalsIgnoreCase("en")
+                        ? "You have reached your free daily limit for AI requests. Please try again tomorrow."
+                        : "Du har uppnått din gräns för gratis AI-anrop för dagen. Imorgon får du 5 nya anrop.";
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(msg);
+            }
         }
 
         String sourceText = (String) request.getOrDefault("sourceText", "");
