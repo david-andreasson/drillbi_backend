@@ -1,8 +1,9 @@
 FROM amazoncorretto:21-alpine as builder
 
 WORKDIR /app
+COPY pom.xml ./
+RUN apk add --no-cache maven && mvn dependency:go-offline
 COPY . .
-RUN apk add --no-cache maven
 RUN mvn clean package -DskipTests
 
 FROM amazoncorretto:21-alpine
