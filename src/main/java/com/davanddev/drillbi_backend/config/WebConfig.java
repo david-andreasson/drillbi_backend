@@ -23,8 +23,8 @@ public class WebConfig implements WebMvcConfigurer {
             registration.allowedOriginPatterns("http://localhost:*");
 
         } else {
-            // Production – Allow local and production
-            registration.allowedOriginPatterns("https://drillbi.se", "https://drillbi.com");
+            // Production – Allow local och prod med exakt match
+            registration.allowedOrigins("https://drillbi.se", "https://drillbi.com","https://www.drillbi.se", "https://www.drillbi.com");
 
         }
     }
