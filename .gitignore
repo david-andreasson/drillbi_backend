@@ -225,3 +225,10 @@ $RECYCLE.BIN/
 *.log
 
 # End of https://www.toptal.com/developers/gitignore/api/java,intellij+all,visualstudiocode,macos,windows,notepadpp,vim
+/target/classes/application.properties
+
+quiz_api.mv.db
+quiz_api.trace.db
+
+/target/*
+/data/*
