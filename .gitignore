@@ -225,3 +225,15 @@ $RECYCLE.BIN/
 *.log
 
 # End of https://www.toptal.com/developers/gitignore/api/java,intellij+all,visualstudiocode,macos,windows,notepadpp,vim
+logs/spring.log.2025-05-16.0.gz
+.gitignore
+target/classes/application.properties
+target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
+target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst
+target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
+logs/spring.log.2025-05-17.0.gz
+data/quiz_api.trace.db
+data/quiz_api.mv.db
+data/quiz_api.lock.db
+target/classes/application.properties
