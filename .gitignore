@@ -237,3 +237,4 @@ data/quiz_api.trace.db
 data/quiz_api.mv.db
 data/quiz_api.lock.db
 target/classes/application.properties
+target/classes/application.properties
