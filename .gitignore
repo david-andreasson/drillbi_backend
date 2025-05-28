@@ -238,3 +238,6 @@ data/quiz_api.mv.db
 data/quiz_api.lock.db
 target/classes/application.properties
 target/classes/application.properties
+target/maven-archiver/pom.properties
+target/classes/application.properties
+target/drillbi_backend-0.0.1-SNAPSHOT.jar.original

@@ -69,7 +69,7 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 // Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        // H2 console
+                        // Tillåt H2 Console
                         .requestMatchers("/h2-console/**").permitAll()
                         // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
