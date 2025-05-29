@@ -242,3 +242,4 @@ target/maven-archiver/pom.properties
 target/classes/application.properties
 target/drillbi_backend-0.0.1-SNAPSHOT.jar.original
 target/classes/application-prod.properties
+target/classes/application.properties
