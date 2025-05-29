@@ -24,13 +24,22 @@ public class AdminSqlController {
         try {
             if (sql.trim().toLowerCase().startsWith("select")) {
                 List<Map<String, Object>> result = jdbcTemplate.queryForList(sql);
-                return ResponseEntity.ok(result);
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "result", result
+                ));
             } else {
                 int rows = jdbcTemplate.update(sql);
-                return ResponseEntity.ok("Antal påverkade rader: " + rows);
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "rowsAffected", rows
+                ));
             }
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Fel: " + e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "error", e.getMessage()
+            ));
         }
     }
 
