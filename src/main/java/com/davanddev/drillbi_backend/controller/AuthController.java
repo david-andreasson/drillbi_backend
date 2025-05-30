@@ -71,7 +71,7 @@ public class AuthController {
                 .setSubject(user.getUsername())
                 .claim("role", user.getRole())
                 .claim("firstName", user.getFirstName())
-                .claim("lastName", user.getLastName())
+
                 .claim("userGroup", user.getUserGroup())
                 .claim("email", user.getEmail())
                 .setIssuedAt(new Date())

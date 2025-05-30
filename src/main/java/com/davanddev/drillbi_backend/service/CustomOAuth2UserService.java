@@ -47,7 +47,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         String email = (String) oauthUser.getAttribute("email");
         String givenName = (String) oauthUser.getAttribute("given_name");
-        final String lastNameValue = Optional.ofNullable((String) oauthUser.getAttribute("family_name")).orElse("");
 
 
         if (email == null) {
@@ -61,15 +60,15 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         User user = userRepository.findByUsername(email).orElseGet(() -> {
             User u = new User();
             u.setUsername(email);
+            u.setEmail(email);
             u.setPassword(""); // no local password yet
             u.setFirstName(givenName);
-            u.setLastName(lastNameValue);
             u.setRole(role);
             u.setUserGroup(userGroup);
             return userRepository.save(u);
         });
 
-        // Alltid sätt rätt efternamn och userGroup även vid update
+        // Endast uppdatera role och userGroup
         boolean changed = false;
         if (!Objects.equals(user.getRole(), role)) {
             user.setRole(role);
@@ -77,10 +76,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
         if (!Objects.equals(user.getUserGroup(), userGroup)) {
             user.setUserGroup(userGroup);
-            changed = true;
-        }
-        if (!Objects.equals(user.getLastName(), lastNameValue)) {
-            user.setLastName(lastNameValue);
             changed = true;
         }
         if (changed) {

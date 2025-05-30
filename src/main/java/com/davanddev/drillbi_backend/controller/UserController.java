@@ -24,7 +24,7 @@ public class UserController {
         Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("username", jwt.getSubject());
         userInfo.put("firstName", jwt.getClaimAsString("firstName"));
-        userInfo.put("lastName", jwt.getClaimAsString("lastName"));
+
         userInfo.put("role", jwt.getClaimAsString("role"));
         userInfo.put("userGroup", jwt.getClaimAsString("userGroup"));
 
@@ -55,10 +55,6 @@ public class UserController {
         // Uppdatera förnamn
         if (updates.containsKey("firstName")) {
             user.setFirstName(updates.get("firstName"));
-        }
-        // Uppdatera efternamn
-        if (updates.containsKey("lastName")) {
-            user.setLastName(updates.get("lastName"));
         }
         // Uppdatera användarnamn (om det är nytt och inte upptaget)
         if (updates.containsKey("username")) {

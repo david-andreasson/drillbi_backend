@@ -43,11 +43,8 @@ public class CustomOAuth2AuthenticationSuccessHandler implements AuthenticationS
             if (user == null) {
                 OAuth2User principal = oauthToken.getPrincipal();
                 String givenName = principal.getAttribute("given_name");
-                String familyName = principal.getAttribute("family_name");
-                String userGroup = null;
-                if (principal.getAttributes().containsKey("userGroup")) {
-                    userGroup = principal.getAttribute("userGroup");
-                }
+
+                String userGroup = "JIN24";
                 user = new User();
                 user.setUsername(email);
                 user.setEmail(email);
@@ -55,14 +52,13 @@ public class CustomOAuth2AuthenticationSuccessHandler implements AuthenticationS
                 user.setRole("ROLE_USER");
                 user.setPremium(false);
                 user.setFirstName(givenName);
-                user.setLastName(familyName);
+
                 user.setUserGroup(userGroup);
                 user.setStripeCustomerId(null);
                 user.setStripeSubscriptionId(null);
                 user = userRepository.save(user);
                 System.out.println("[OAuth2 Success Handler] Ny användare skapad: " + email +
                         ", förnamn: " + givenName +
-                        ", efternamn: " + familyName +
                         ", userGroup: " + userGroup);
             } else {
                 System.out.println("[OAuth2 Success Handler] Befintlig användare hittad: " + email);
