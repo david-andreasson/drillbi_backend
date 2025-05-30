@@ -39,7 +39,7 @@ public class CustomOAuth2AuthenticationSuccessHandler implements AuthenticationS
         String email = oauthToken.getPrincipal().getAttribute("email");
         System.out.println("[OAuth2 Success Handler] Försöker logga in användare med e-post: " + email);
         try {
-            User user = userRepository.findByUsername(email).orElse(null);
+            User user = userRepository.findByEmail(email).orElse(null);
             if (user == null) {
                 OAuth2User principal = oauthToken.getPrincipal();
                 String givenName = principal.getAttribute("given_name");
