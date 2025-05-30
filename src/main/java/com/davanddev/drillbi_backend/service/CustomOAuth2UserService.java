@@ -45,9 +45,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
         OAuth2User oauthUser = delegate.loadUser(userRequest);
 
-        String email = oauthUser.getAttribute("email");
-        String givenName = oauthUser.getAttribute("given_name");
-        String familyName = oauthUser.getAttribute("family_name");
+        String email = (String) oauthUser.getAttribute("email");
+        String givenName = (String) oauthUser.getAttribute("given_name");
+        final String lastNameValue = Optional.ofNullable((String) oauthUser.getAttribute("family_name")).orElse("");
+
 
         if (email == null) {
             throw new OAuth2AuthenticationException("Email not found in OAuth2 user attributes");
@@ -62,13 +63,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             u.setUsername(email);
             u.setPassword(""); // no local password yet
             u.setFirstName(givenName);
-            u.setLastName(familyName);
+            u.setLastName(lastNameValue);
             u.setRole(role);
             u.setUserGroup(userGroup);
             return userRepository.save(u);
         });
 
-        // Update if role or group changed
+        // Alltid sätt rätt efternamn och userGroup även vid update
         boolean changed = false;
         if (!Objects.equals(user.getRole(), role)) {
             user.setRole(role);
@@ -76,6 +77,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
         if (!Objects.equals(user.getUserGroup(), userGroup)) {
             user.setUserGroup(userGroup);
+            changed = true;
+        }
+        if (!Objects.equals(user.getLastName(), lastNameValue)) {
+            user.setLastName(lastNameValue);
             changed = true;
         }
         if (changed) {
