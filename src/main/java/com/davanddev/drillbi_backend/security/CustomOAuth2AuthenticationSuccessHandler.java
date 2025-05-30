@@ -69,6 +69,7 @@ public class CustomOAuth2AuthenticationSuccessHandler implements AuthenticationS
             }
             String token = tokenService.generateToken(user);
             System.out.println("[OAuth2 Success Handler] Token genererad och redirect till frontend sker för: " + email);
+            System.out.println("[OAuth2 Success Handler] Redirect-URL: " + frontendRedirectUrl + "?token=" + token);
             response.sendRedirect(frontendRedirectUrl + "?token=" + token);
         } catch (Exception e) {
             System.err.println("[OAuth2 Success Handler] FEL vid login för: " + email);
