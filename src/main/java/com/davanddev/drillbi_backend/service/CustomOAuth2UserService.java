@@ -54,7 +54,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
 
         String role = determineRole(email);
-        String userGroup = determineGroup(email);
+        String userGroup = "JIN24";
 
         // Load or create our User entity
         User user = userRepository.findByUsername(email).orElseGet(() -> {
