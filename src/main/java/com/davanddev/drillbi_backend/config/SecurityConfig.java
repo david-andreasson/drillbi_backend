@@ -30,9 +30,15 @@ import java.nio.charset.StandardCharsets;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+    private final com.davanddev.drillbi_backend.security.CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler;
+    private final com.davanddev.drillbi_backend.service.CustomOAuth2UserService customOAuth2UserService;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                          com.davanddev.drillbi_backend.security.CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler,
+                          com.davanddev.drillbi_backend.service.CustomOAuth2UserService customOAuth2UserService) {
         this.userDetailsService = userDetailsService;
+        this.customOAuth2AuthenticationSuccessHandler = customOAuth2AuthenticationSuccessHandler;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
 
     @Bean
@@ -75,12 +81,21 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Authentication endpoint
                         .requestMatchers("/api/v2/auth/**").permitAll()
+                        // Tillåt OAuth2 endpoints
+                        .requestMatchers("/oauth2/**", "/login/**").permitAll()
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
-                // Basic auth for token endpoint
+                // OAuth2 login för Google
+                .oauth2Login(oauth2 -> oauth2
+                        .successHandler(customOAuth2AuthenticationSuccessHandler)
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                )
+                // Basic auth för token endpoint
                 .httpBasic(Customizer.withDefaults())
-                // JWT resource server for API protection
+                // JWT resource server för API-skydd
                 .oauth2ResourceServer(rs -> rs.jwt(Customizer.withDefaults()));
 
         return http.build();
