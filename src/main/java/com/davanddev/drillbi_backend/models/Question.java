@@ -48,6 +48,12 @@ public class Question {
     private String questionText;
 
     /**
+     * URL or path to the image associated with this question (optional).
+     */
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    /**
      * The list of options for this question.
      */
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)

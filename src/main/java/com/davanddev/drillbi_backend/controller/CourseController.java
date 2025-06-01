@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v2/courses")
 public class CourseController {
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(CourseController.class);
 
     private final CourseRepository courseRepository;
 
@@ -39,5 +40,36 @@ public class CourseController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(dtoList);
+    }
+
+    @PostMapping
+    public ResponseEntity<?> createCourse(@RequestBody CourseDTO courseDto, @AuthenticationPrincipal Jwt jwt) {
+        logger.info("POST /api/v2/courses - name={}, displayName={}, description={}", courseDto.getName(), courseDto.getDisplayName(), courseDto.getDescription());
+        try {
+            if (courseDto.getName() == null || courseDto.getName().isBlank()) {
+                logger.error("createCourse: Saknar kursnamn");
+                return ResponseEntity.badRequest().body("error.courseNameRequired");
+            }
+            if (courseRepository.findByName(courseDto.getName()).isPresent()) {
+                logger.error("createCourse: Kursnamnet upptaget: {}", courseDto.getName());
+                return ResponseEntity.badRequest().body("error.courseNameTaken");
+            }
+            String userGroup = jwt.getClaimAsString("userGroup");
+            if (userGroup == null || userGroup.isBlank()) userGroup = "UNKNOWN";
+            Course course = new Course(
+                courseDto.getName(),
+                courseDto.getDisplayName(),
+                courseDto.getDescription(),
+                userGroup
+            );
+            Course saved = courseRepository.save(course);
+            CourseDTO dto = DtoMapper.toCourseDTO(saved);
+            logger.info("createCourse: Kurs skapad OK: {}", courseDto.getName());
+            return ResponseEntity.status(201).body(dto);
+        } catch (Exception e) {
+            logger.error("createCourse: Exception/fel", e);
+            logger.error("createCourse: Felmeddelande: {}", "error.courseCreateFailed");
+            return ResponseEntity.internalServerError().body("error.courseCreateFailed");
+        }
     }
 }

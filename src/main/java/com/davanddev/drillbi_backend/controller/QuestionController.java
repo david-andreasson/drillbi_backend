@@ -1,6 +1,11 @@
 package com.davanddev.drillbi_backend.controller;
 
 import com.davanddev.drillbi_backend.dto.QuestionDTO;
+import com.davanddev.drillbi_backend.dto.QuestionOptionDTO;
+import com.davanddev.drillbi_backend.models.QuestionOption;
+import com.davanddev.drillbi_backend.models.Course;
+import com.davanddev.drillbi_backend.repository.QuestionRepository;
+import com.davanddev.drillbi_backend.repository.CourseRepository;
 import com.davanddev.drillbi_backend.models.Question;
 import com.davanddev.drillbi_backend.service.QuestionService;
 import com.davanddev.drillbi_backend.util.DtoMapper;
@@ -24,17 +29,119 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.UUID;
+import java.io.File;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/v2/questions")
 public class QuestionController {
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(QuestionController.class);
+
+    @PostMapping("/create")
+    public ResponseEntity<?> createQuestion(
+            @RequestParam("questionText") String questionText,
+            @RequestParam("options") String optionsJson,
+            @RequestParam("correctIndex") String correctIndexStr,
+            @RequestParam(value = "courseName", required = false) String courseName,
+            @RequestParam(value = "image", required = false) MultipartFile imageFile
+    ) {
+        logger.info("POST /api/v2/questions/create - questionText={}, optionsJson={}, correctIndexStr={}, courseName={}, imageFilePresent={}", questionText, optionsJson, correctIndexStr, courseName, imageFile != null);
+
+        try {
+            // Parsea optionsJson till lista
+            ObjectMapper mapper = new ObjectMapper();
+            List<QuestionOptionDTO> optionDTOs = Arrays.asList(mapper.readValue(optionsJson, QuestionOptionDTO[].class));
+            int correctIndex = Integer.parseInt(correctIndexStr);
+
+            // Validera obligatoriska fält
+            if (questionText == null || questionText.isBlank()) {
+                logger.error("createQuestion: Saknar frågetext");
+                return ResponseEntity.badRequest().body("error.questionTextRequired");
+            }
+            if (optionsJson == null || optionsJson.isBlank()) {
+                logger.error("createQuestion: Saknar optionsJson");
+                return ResponseEntity.badRequest().body("error.optionsRequired");
+            }
+            if (correctIndexStr == null || correctIndexStr.isBlank()) {
+                logger.error("createQuestion: Saknar eller ogiltigt correctIndexStr");
+                return ResponseEntity.badRequest().body("error.correctIndexInvalid");
+            }
+            if (courseName == null || courseName.isBlank()) {
+                logger.error("createQuestion: Saknar kursnamn");
+                return ResponseEntity.badRequest().body("error.courseNameRequired");
+            }
+            // Hämta eller skapa kurs
+            Course course = courseRepository.findByName(courseName).orElse(null);
+            if (course == null) {
+                course = new Course();
+                course.setName(courseName);
+                course.setDisplayName(courseName);
+                course.setDescription("");
+                course.setUserGroup("UNKNOWN");
+                course = courseRepository.save(course);
+            }
+
+            // Spara bild om den finns
+            String imageUrl = null;
+            if (imageFile != null && !imageFile.isEmpty()) {
+                try {
+                    String uploadsDir = System.getProperty("user.dir") + File.separator + "images";
+                    File dir = new File(uploadsDir);
+                    if (!dir.exists()) dir.mkdirs();
+                    String filename = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
+                    File dest = new File(dir, filename);
+                    imageFile.transferTo(dest);
+                    imageUrl = "/images/" + filename;
+                } catch (Exception e) {
+                    logger.error("createQuestion: Kunde inte ladda upp bilden", e);
+                    return ResponseEntity.badRequest().body("error.imageUploadFailed");
+                }
+            }
+
+            // Skapa Question och QuestionOption
+            Question question = new Question();
+            question.setQuestionText(questionText);
+            question.setCourse(course);
+            question.setQuestionNumber(0); // TODO: sätt rätt nummer
+            question.setImageUrl(imageUrl);
+            List<QuestionOption> options = new ArrayList<>();
+            for (int i = 0; i < optionDTOs.size(); i++) {
+                QuestionOptionDTO dto = optionDTOs.get(i);
+                QuestionOption opt = new QuestionOption();
+                opt.setOptionLabel(dto.getOptionLabel());
+                opt.setOptionText(dto.getOptionText());
+                opt.setCorrect(i == correctIndex);
+                opt.setQuestion(question);
+                options.add(opt);
+            }
+            question.setOptions(options);
+
+            // Spara frågan
+            Question saved = questionRepository.save(question);
+            QuestionDTO dto = DtoMapper.toQuestionDTO(saved);
+            logger.info("createQuestion: Fråga skapad OK för kurs {}", courseName);
+            return ResponseEntity.status(201).body(dto);
+        } catch (Exception e) {
+            logger.error("createQuestion: Exception/fel", e);
+            return ResponseEntity.internalServerError().body("error.questionCreateFailed");
+        }
+    }
+
 
     private final QuestionService questionService;
+    private final QuestionRepository questionRepository;
+    private final CourseRepository courseRepository;
 
-
-
-    public QuestionController(QuestionService questionService) {
+    public QuestionController(QuestionService questionService, QuestionRepository questionRepository, CourseRepository courseRepository) {
         this.questionService = questionService;
+        this.questionRepository = questionRepository;
+        this.courseRepository = courseRepository;
     }
 
 
