@@ -18,9 +18,11 @@ public class CourseController {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(CourseController.class);
 
     private final CourseRepository courseRepository;
+    private final com.davanddev.drillbi_backend.repository.QuestionRepository questionRepository;
 
-    public CourseController(CourseRepository courseRepository) {
+    public CourseController(CourseRepository courseRepository, com.davanddev.drillbi_backend.repository.QuestionRepository questionRepository) {
         this.courseRepository = courseRepository;
+        this.questionRepository = questionRepository;
     }
 
     @GetMapping
@@ -94,5 +96,18 @@ public class CourseController {
                 return ResponseEntity.ok(DtoMapper.toCourseDTO(saved));
             })
             .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{courseId}/questions")
+    public ResponseEntity<List<com.davanddev.drillbi_backend.dto.QuestionDTO>> getQuestionsForCourse(@PathVariable Long courseId) {
+        var courseOpt = courseRepository.findById(courseId);
+        if (courseOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        var questions = questionRepository.findAll().stream()
+            .filter(q -> q.getCourse() != null && q.getCourse().getId().equals(courseId))
+            .map(com.davanddev.drillbi_backend.util.DtoMapper::toQuestionDTO)
+            .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(questions);
     }
 }
