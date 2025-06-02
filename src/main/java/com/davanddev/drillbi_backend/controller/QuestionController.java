@@ -33,8 +33,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
 import java.io.File;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -175,5 +177,60 @@ public class QuestionController {
             userGroup = "UNKNOWN";
         }
         questionService.saveQuestions(questions, userGroup);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<QuestionDTO> getQuestion(@PathVariable Long id) {
+        return questionRepository.findById(id)
+            .map(DtoMapper::toQuestionDTO)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<QuestionDTO> updateQuestion(
+            @PathVariable Long id,
+            @RequestParam("questionText") String questionText,
+            @RequestParam("options") String optionsJson,
+            @RequestParam("correctIndex") Integer correctIndex,
+            @RequestParam(value = "image", required = false) MultipartFile imageFile
+    ) {
+        Optional<Question> optQuestion = questionRepository.findById(id);
+        if (optQuestion.isEmpty()) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND).build();
+        }
+        Question question = optQuestion.get();
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<QuestionOptionDTO> optionDTOs = Arrays.asList(mapper.readValue(optionsJson, QuestionOptionDTO[].class));
+            // Update question fields
+            question.setQuestionText(questionText);
+            // Handle image upload
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String uploadsDir = System.getProperty("user.dir") + File.separator + "images";
+                File dir = new File(uploadsDir);
+                if (!dir.exists()) dir.mkdirs();
+                String filename = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
+                File dest = new File(dir, filename);
+                imageFile.transferTo(dest);
+                question.setImageUrl("/images/" + filename);
+            }
+            // Update options
+            List<QuestionOption> options = new ArrayList<>();
+            for (int i = 0; i < optionDTOs.size(); i++) {
+                QuestionOptionDTO dto = optionDTOs.get(i);
+                QuestionOption opt = new QuestionOption();
+                opt.setOptionLabel(dto.getOptionLabel());
+                opt.setOptionText(dto.getOptionText());
+                opt.setCorrect(i == correctIndex);
+                opt.setQuestion(question);
+                options.add(opt);
+            }
+            question.setOptions(options);
+            Question saved = questionRepository.save(question);
+            return ResponseEntity.ok(DtoMapper.toQuestionDTO(saved));
+        } catch (Exception e) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

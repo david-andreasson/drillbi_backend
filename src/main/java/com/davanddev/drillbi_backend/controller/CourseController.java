@@ -72,4 +72,27 @@ public class CourseController {
             return ResponseEntity.internalServerError().body("error.courseCreateFailed");
         }
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CourseDTO> getCourse(@PathVariable Long id) {
+        return courseRepository.findById(id)
+            .map(DtoMapper::toCourseDTO)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CourseDTO> updateCourse(
+            @PathVariable Long id,
+            @RequestBody CourseDTO updatedCourse) {
+        return courseRepository.findById(id)
+            .map(course -> {
+                course.setName(updatedCourse.getName());
+                course.setDisplayName(updatedCourse.getDisplayName());
+                course.setDescription(updatedCourse.getDescription());
+                Course saved = courseRepository.save(course);
+                return ResponseEntity.ok(DtoMapper.toCourseDTO(saved));
+            })
+            .orElse(ResponseEntity.notFound().build());
+    }
 }
