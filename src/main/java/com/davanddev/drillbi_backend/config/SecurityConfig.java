@@ -77,6 +77,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Tillåt H2 Console
                         .requestMatchers("/h2-console/**").permitAll()
+                        // Tillåt bilder publikt
+                        .requestMatchers("/images/**").permitAll()
                         // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Authentication endpoint

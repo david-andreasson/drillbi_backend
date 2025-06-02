@@ -39,6 +39,7 @@ public class DtoMapper {
                         .map(DtoMapper::toOptionDTO)
                         .collect(Collectors.toList())
         );
+        dto.setImageUrl(question.getImageUrl());
         return dto;
     }
 
