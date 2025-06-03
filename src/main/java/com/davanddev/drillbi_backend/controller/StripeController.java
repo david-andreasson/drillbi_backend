@@ -48,7 +48,7 @@ public class StripeController {
         if (userOpt.isEmpty()) {
             throw new IllegalArgumentException("User not found in database for email: " + email);
         }
-        var user = userOpt.get();
+        // var user = userOpt.get();
 
         String priceId = "price_1RNV4mFT8IcQLrR6nCXbfcaq";
 

@@ -1,5 +1,7 @@
 package com.davanddev.drillbi_backend.config;
 
+import org.springframework.lang.NonNull;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -14,7 +16,7 @@ public class StaticResourceConfig implements WebMvcConfigurer {
     private String imagesPath;
 
     @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+    public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         String prefix = imagesPath.startsWith("/") ? "file:" : "file:///";
         log.info("[StaticResourceConfig] Serving images from: {}{}", prefix, imagesPath);
         registry.addResourceHandler("/images/**")

@@ -1,5 +1,7 @@
 package com.davanddev.drillbi_backend.config;
 
+import org.springframework.lang.NonNull;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -12,7 +14,7 @@ public class WebConfig implements WebMvcConfigurer {
     private String activeProfile;
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
         var registration = registry.addMapping("/**")
                 .allowedMethods("*")
                 .allowedHeaders("*")
