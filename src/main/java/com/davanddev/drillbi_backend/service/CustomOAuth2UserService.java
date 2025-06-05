@@ -95,6 +95,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         }
     }
 
+    @SuppressWarnings("unused")
     private String determineGroup(String email) {
         for (var entry : groupMappings.entrySet()) {
             if (entry.getValue().contains(email)) {

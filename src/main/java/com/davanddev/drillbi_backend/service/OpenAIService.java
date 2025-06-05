@@ -77,7 +77,7 @@ public class OpenAIService {
         });
         
         // Log content array in more detail
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "unused"})
         List<Map<String, Object>> contentArray = (List<Map<String, Object>>) respBody.get("content");
         if (contentArray != null) {
             log.info("Content array contains {} elements", contentArray.size());
@@ -156,6 +156,9 @@ public class OpenAIService {
         );
 
         Map<String, Object> body = resp.getBody();
+        if (body == null) {
+            throw new RuntimeException("No response body from OpenAI");
+        }
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> choices = (List<Map<String, Object>>) body.get("choices");
         if (choices == null || choices.isEmpty()) {
@@ -252,7 +255,7 @@ public class OpenAIService {
             json = json.replaceAll("\r", " ");
             json = json.replaceAll("\t", " ");
             log.debug("Final JSON string to parse (options): {}", json);
-            @SuppressWarnings("unchecked")
+            @SuppressWarnings({"unchecked"})
             List<Map<String, Object>> raw = objectMapper.readValue(json, new TypeReference<List<Map<String, Object>>>() {});
             List<QuestionOptionDTO> list = new ArrayList<>();
             for (Map<String, Object> o : raw) {
@@ -313,7 +316,7 @@ public class OpenAIService {
                         List<Map<String, Object>> casted = (List<Map<String, Object>>) options;
                         optsRaw = casted;
                     } else if (options != null) {
-                        @SuppressWarnings("unchecked")
+                        @SuppressWarnings({"unchecked"})
                         Map<String, Object> singleOpt = (Map<String, Object>) options;
                         optsRaw.add(singleOpt);
                     }
@@ -341,7 +344,7 @@ public class OpenAIService {
                 // If not a list, try to parse as error object
                 try {
                     Map<String, String> errorObj = objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
-                    if (errorObj.containsKey("error")) {
+                    if (errorObj != null && errorObj.containsKey("error")) {
                         log.error("AI responded with error: {}", errorObj.get("error"));
                         throw new RuntimeException("AI error: " + errorObj.get("error"));
                     } else {
