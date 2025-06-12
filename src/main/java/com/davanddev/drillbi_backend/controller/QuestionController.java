@@ -34,10 +34,12 @@ public class QuestionController {
 
     private final QuestionService questionService;
     private final QuestionRepository questionRepository;
+    private final com.davanddev.drillbi_backend.repository.CourseRepository courseRepository;
 
-    public QuestionController(QuestionService questionService, QuestionRepository questionRepository) {
+    public QuestionController(QuestionService questionService, QuestionRepository questionRepository, com.davanddev.drillbi_backend.repository.CourseRepository courseRepository) {
         this.questionService = questionService;
         this.questionRepository = questionRepository;
+        this.courseRepository = courseRepository;
     }
 
     // Endpoint to retrieve questions for a given course with a specified sort order.
@@ -133,6 +135,63 @@ public class QuestionController {
             return ResponseEntity.ok(DtoMapper.toQuestionDTO(saved));
         } catch (Exception e) {
             logger.error("[updateQuestion] FEL: {}\nquestionText: {}\noptionsJson: {}\ncorrectIndex: {}\nimageFileNull: {}", e.getMessage(), questionText, optionsJson, correctIndex, imageFile == null, e);
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    // Skapa ny fråga
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<QuestionDTO> createQuestion(
+            @RequestParam("questionText") String questionText,
+            @RequestParam("options") String optionsJson,
+            @RequestParam("correctIndex") Integer correctIndex,
+            @RequestParam(value = "image", required = false) MultipartFile imageFile,
+            @RequestParam(value = "courseName", required = false) String courseName
+    ) {
+        logger.info("[createQuestion] Called for text='{}' correctIndex={} imageFileNull={}", questionText, correctIndex, imageFile == null);
+        logger.info("[createQuestion] optionsJson: {}", optionsJson);
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            List<QuestionOptionDTO> optionDTOs = Arrays.asList(mapper.readValue(optionsJson, QuestionOptionDTO[].class));
+            if (optionDTOs.size() != 4) {
+                logger.error("createQuestion: Fel antal alternativ ({}), måste vara exakt 4", optionDTOs.size());
+                return ResponseEntity.badRequest().body(null);
+            }
+            Question question = new Question();
+            question.setQuestionText(questionText);
+            if (courseName != null) {
+                Optional<com.davanddev.drillbi_backend.models.Course> courseOpt = courseRepository.findByName(courseName);
+                if (courseOpt.isEmpty()) {
+                    logger.error("createQuestion: Kunde inte hitta kurs med namn {}", courseName);
+                    return ResponseEntity.badRequest().body(null);
+                }
+                question.setCourse(courseOpt.get());
+            }
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String uploadsDir = System.getProperty("user.dir") + File.separator + "images";
+                File dir = new File(uploadsDir);
+                if (!dir.exists()) dir.mkdirs();
+                String filename = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
+                File dest = new File(dir, filename);
+                imageFile.transferTo(dest);
+                question.setImageUrl("/images/" + filename);
+            }
+            // Alternativ
+            List<QuestionOption> newOptions = new ArrayList<>();
+            for (int i = 0; i < optionDTOs.size(); i++) {
+                QuestionOptionDTO dto = optionDTOs.get(i);
+                QuestionOption opt = new QuestionOption();
+                opt.setOptionLabel(dto.getOptionLabel());
+                opt.setOptionText(dto.getOptionText());
+                opt.setCorrect(i == correctIndex);
+                opt.setQuestion(question);
+                newOptions.add(opt);
+            }
+            question.setOptions(newOptions);
+            Question saved = questionRepository.save(question);
+            return ResponseEntity.ok(DtoMapper.toQuestionDTO(saved));
+        } catch (Exception e) {
+            logger.error("[createQuestion] FEL: {}\nquestionText: {}\noptionsJson: {}\ncorrectIndex: {}\nimageFileNull: {}", e.getMessage(), questionText, optionsJson, correctIndex, imageFile == null, e);
             return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
