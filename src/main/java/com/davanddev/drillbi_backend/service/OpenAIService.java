@@ -13,8 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 @Service
 @Slf4j
@@ -77,8 +75,7 @@ public class OpenAIService {
         });
         
         // Log content array in more detail
-        @SuppressWarnings({"unchecked", "unused"})
-        List<Map<String, Object>> contentArray = (List<Map<String, Object>>) respBody.get("content");
+        List<Map<String, Object>> contentArray = objectMapper.convertValue(respBody.get("content"), new TypeReference<List<Map<String, Object>>>() {});
         if (contentArray != null) {
             log.info("Content array contains {} elements", contentArray.size());
             for (int i = 0; i < contentArray.size(); i++) {
@@ -91,8 +88,7 @@ public class OpenAIService {
         }
 
         // Get content array and extract the text
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> content = (List<Map<String, Object>>) respBody.get("content");
+        List<Map<String, Object>> content = objectMapper.convertValue(respBody.get("content"), new TypeReference<List<Map<String, Object>>>() {});
         if (content == null || content.isEmpty()) {
             throw new RuntimeException("Claude API: No content in response");
         }
@@ -159,13 +155,11 @@ public class OpenAIService {
         if (body == null) {
             throw new RuntimeException("No response body from OpenAI");
         }
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> choices = (List<Map<String, Object>>) body.get("choices");
+        List<Map<String, Object>> choices = objectMapper.convertValue(body.get("choices"), new TypeReference<List<Map<String, Object>>>() {});
         if (choices == null || choices.isEmpty()) {
             throw new RuntimeException("No choices in OpenAI response");
         }
-        @SuppressWarnings("unchecked")
-        Map<String, Object> msg = (Map<String, Object>) choices.get(0).get("message");
+        Map<String, Object> msg = objectMapper.convertValue(choices.get(0).get("message"), new TypeReference<Map<String, Object>>() {});
         return (String) msg.get("content");
     }
 
@@ -240,22 +234,17 @@ public class OpenAIService {
     private List<QuestionOptionDTO> parseOptions(String content) {
         String json = content;
         try {
-            try {
-                Map<String, Object> map = objectMapper.readValue(content, new TypeReference<>() {});
-                if (map.containsKey("content")) {
-                    List<Map<String, Object>> contentArr = (List<Map<String, Object>>) map.get("content");
-                    if (contentArr != null && !contentArr.isEmpty() && contentArr.get(0).containsKey("text")) {
-                        json = (String) contentArr.get(0).get("text");
-                    }
+            Map<String, Object> map = objectMapper.readValue(content, new TypeReference<>() {});
+            if (map.containsKey("content")) {
+                List<Map<String, Object>> contentArr = (List<Map<String, Object>>) map.get("content");
+                if (contentArr != null && !contentArr.isEmpty() && contentArr.get(0).containsKey("text")) {
+                    json = (String) contentArr.get(0).get("text");
                 }
-            } catch (Exception e) {
-                // Not a Claude API response, treat as raw JSON
             }
             json = json.replaceAll("\n", " ");
             json = json.replaceAll("\r", " ");
             json = json.replaceAll("\t", " ");
             log.debug("Final JSON string to parse (options): {}", json);
-            @SuppressWarnings({"unchecked"})
             List<Map<String, Object>> raw = objectMapper.readValue(json, new TypeReference<List<Map<String, Object>>>() {});
             List<QuestionOptionDTO> list = new ArrayList<>();
             for (Map<String, Object> o : raw) {
@@ -301,7 +290,6 @@ public class OpenAIService {
             log.debug("Final JSON string to parse: {}", json);
             try {
                 // Try to parse as list of questions
-                @SuppressWarnings("unchecked")
                 List<Map<String, Object>> raw = objectMapper.readValue(json, new TypeReference<List<Map<String, Object>>>() {});
                 List<QuestionDTO> list = new ArrayList<>();
                 for (Map<String, Object> item : raw) {
@@ -312,12 +300,10 @@ public class OpenAIService {
                     List<Map<String, Object>> optsRaw = new ArrayList<>();
                     Object options = item.get("options");
                     if (options instanceof List<?>) {
-                        @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> casted = (List<Map<String, Object>>) options;
+                        List<Map<String, Object>> casted = objectMapper.convertValue(options, new TypeReference<List<Map<String, Object>>>() {});
                         optsRaw = casted;
                     } else if (options != null) {
-                        @SuppressWarnings({"unchecked"})
-                        Map<String, Object> singleOpt = (Map<String, Object>) options;
+                        Map<String, Object> singleOpt = objectMapper.convertValue(options, new TypeReference<Map<String, Object>>() {});
                         optsRaw.add(singleOpt);
                     }
                     List<QuestionOptionDTO> opts = new ArrayList<>();
@@ -370,82 +356,5 @@ public class OpenAIService {
         if (maxQuestions < 1) {
             throw new IllegalArgumentException("maxQuestions must be at least 1");
         }
-    }
-
-    private String extractJsonArray(String content) {
-        // Try to find JSON array first
-        int start = content.indexOf('[');
-        if (start < 0) {
-            // If no array is found, try to find a JSON object
-            start = content.indexOf('{');
-            if (start < 0) {
-                throw new RuntimeException("No JSON array or object found in response: " + content);
-            }
-        }
-
-        int end = -1;
-        int depth = 0;
-        char lastChar = '\0';
-        boolean inString = false;
-        boolean isArray = content.charAt(start) == '[';
-        char endChar = isArray ? ']' : '}';
-        char startChar = isArray ? '[' : '{';
-
-        for (int i = start; i < content.length(); i++) {
-            char c = content.charAt(i);
-            if (c == '"' && lastChar != '\\') {
-                inString = !inString;
-            }
-            if (!inString) {
-                if (c == startChar) depth++;
-                else if (c == endChar) {
-                    depth--;
-                    if (depth == 0) {
-                        end = i + 1;
-                        break;
-                    }
-                }
-            }
-            lastChar = c;
-        }
-
-        if (end < 0) {
-            throw new RuntimeException("Unmatched brackets in response: " + content);
-        }
-
-        String json = content.substring(start, end);
-        
-        // Log the original JSON content for debugging
-        log.debug("Extracted JSON: {}", json);
-        
-        // Log original JSON
-        log.debug("Extracted JSON (before fix): {}", json);
-        // Remove escape-backslash before quote
-        json = json.replaceAll("\\\"", "\"");
-        // Remove escape-backslash before slash
-        json = json.replaceAll("\\/", "/");
-        // Replace escaped newline, carriage return, tab with space
-        json = json.replaceAll("\\n", " ");
-        json = json.replaceAll("\\r", " ");
-        json = json.replaceAll("\\t", " ");
-
-        // Remove whitespace between colon and quotes
-        Pattern pattern = Pattern.compile("\"\\s*:\\s*\"|\"\\s*:\\s*\\{|\s*:\\s*\\[");
-        Matcher matcher = pattern.matcher(json);
-        // Replace whitespace between colon and quotes/objects/arrays
-        json = matcher.replaceAll("\":");
-        // Trim and remove trailing comma
-        json = json.trim();
-        if (json.endsWith(",")) {
-            json = json.substring(0, json.length() - 1);
-        }
-        // Add end character if missing
-        if (!json.endsWith("]") && !json.endsWith("}")) {
-            json = json + endChar;
-        }
-        // Log cleaned JSON
-        log.debug("Extracted JSON (after fix): {}", json);
-        
-        return json;
     }
 }
