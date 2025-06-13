@@ -85,6 +85,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/v2/auth/**").permitAll()
                         // Tillåt ping-endpoint
                         .requestMatchers("/api/ping").permitAll()
+                        // Tillåt versions-endpoint publikt
+                        .requestMatchers("/api/version").permitAll()
                         // Tillåt OAuth2 endpoints
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
                         // All other endpoints require authentication
