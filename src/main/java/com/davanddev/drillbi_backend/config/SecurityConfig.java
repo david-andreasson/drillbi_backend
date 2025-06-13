@@ -83,6 +83,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Authentication endpoint
                         .requestMatchers("/api/v2/auth/**").permitAll()
+                        // Tillåt ping-endpoint
+                        .requestMatchers("/api/ping").permitAll()
                         // Tillåt OAuth2 endpoints
                         .requestMatchers("/oauth2/**", "/login/**").permitAll()
                         // All other endpoints require authentication
