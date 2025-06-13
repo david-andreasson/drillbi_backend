@@ -236,7 +236,14 @@ public class OpenAIService {
         try {
             Map<String, Object> map = objectMapper.readValue(content, new TypeReference<>() {});
             if (map.containsKey("content")) {
-                List<Map<String, Object>> contentArr = (List<Map<String, Object>>) map.get("content");
+                Object contentObj = map.get("content");
+                List<Map<String, Object>> contentArr = null;
+                if (contentObj instanceof List<?>) {
+                    // Suppress unchecked warning for cast
+                    @SuppressWarnings("unchecked")
+                    List<Map<String, Object>> tmp = (List<Map<String, Object>>) contentObj;
+                    contentArr = tmp;
+                }
                 if (contentArr != null && !contentArr.isEmpty() && contentArr.get(0).containsKey("text")) {
                     json = (String) contentArr.get(0).get("text");
                 }
@@ -275,7 +282,14 @@ public class OpenAIService {
             try {
                 Map<String, Object> map = objectMapper.readValue(content, new TypeReference<>() {});
                 if (map.containsKey("content")) {
-                    List<Map<String, Object>> contentArr = (List<Map<String, Object>>) map.get("content");
+                    Object contentObj = map.get("content");
+                    List<Map<String, Object>> contentArr = null;
+                    if (contentObj instanceof List<?>) {
+                        // Suppress unchecked warning for cast
+                        @SuppressWarnings("unchecked")
+                        List<Map<String, Object>> tmp = (List<Map<String, Object>>) contentObj;
+                        contentArr = tmp;
+                    }
                     if (contentArr != null && !contentArr.isEmpty() && contentArr.get(0).containsKey("text")) {
                         json = (String) contentArr.get(0).get("text");
                     }
