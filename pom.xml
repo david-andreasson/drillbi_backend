@@ -58,6 +58,14 @@
             <artifactId>stripe-java</artifactId>
             <version>24.0.0</version>
         </dependency>
+
+        <!-- Tess4J for OCR -->
+        <dependency>
+            <groupId>net.sourceforge.tess4j</groupId>
+            <artifactId>tess4j</artifactId>
+            <version>5.10.0</version>
+        </dependency>
+
         <!-- Database -->
         <dependency>
             <groupId>org.flywaydb</groupId>
