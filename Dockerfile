@@ -1,6 +1,6 @@
 # Byggsteg
 # Byggsteg
-FROM maven:3.9.4-alpine AS builder
+FROM maven:3.9.4-eclipse-temurin-21 AS builder
 WORKDIR /app
 COPY . .
 RUN mvn clean package -DskipTests
