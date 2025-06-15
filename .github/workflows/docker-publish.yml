@@ -48,4 +48,6 @@ jobs:
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          tags: davidandreasson/drillbi:backend-latest
+          tags: |
+            davidandreasson/drillbi:backend-latest
+            davidandreasson/drillbi:backend-${{ github.sha }}
