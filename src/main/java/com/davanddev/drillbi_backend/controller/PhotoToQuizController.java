@@ -15,7 +15,7 @@ import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 
 @RestController
-@RequestMapping("/api/phototoquiz")
+@RequestMapping("/api/v2/phototoquiz")
 public class PhotoToQuizController {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -47,7 +47,7 @@ public class PhotoToQuizController {
                 return ResponseEntity.badRequest().body("Kunde inte läsa bilden.");
             }
             Tesseract tesseract = new Tesseract();
-            tesseract.setDatapath("tessdata"); // Förutsätter att tessdata ligger i rooten eller konfigurerad path
+            tesseract.setDatapath("/usr/share/tessdata"); // Absolut path till språkdata i Docker
             tesseract.setLanguage("swe+eng"); // Svenska och engelska
             String text = tesseract.doOCR(image);
             return ResponseEntity.ok().body(text);
