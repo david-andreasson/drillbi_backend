@@ -230,39 +230,99 @@ public class OpenAIService {
         );
         return parseOptions(content);
     }
+    private void validateInputs(String text, int maxQuestions) {
+        if (text == null || text.isBlank()) {
+            throw new IllegalArgumentException("Text may not be empty");
+        }
+        if (maxQuestions <= 0 || maxQuestions > 50) {
+            throw new IllegalArgumentException("maxQuestions must be between 1 and 50");
+        }
+    }
+
+    private List<QuestionDTO> parseQuestions(String content) {
+        String json = content;
+        if (json == null || json.isEmpty()) {
+            throw new RuntimeException("Empty response from AI");
+        }
+        try {
+            // Försök att parsa direkt som en lista av DTO
+            try {
+                List<QuestionDTO> direct = objectMapper.readValue(json, new TypeReference<List<QuestionDTO>>() {});
+                log.debug("Parsed questions directly as List<QuestionDTO>: {}", direct);
+                return direct;
+            } catch (Exception e) {
+                log.debug("Direct array parse failed, trying fallback. Error: {}", e.getMessage());
+            }
+            // Försök som objekt med content-fält
+            try {
+                Map<String, Object> map = objectMapper.readValue(json, new TypeReference<>() {});
+                if (map.containsKey("content")) {
+                    Object contentObj = map.get("content");
+                    if (contentObj instanceof List<?>) {
+                        String arrJson = objectMapper.writeValueAsString(contentObj);
+                        List<QuestionDTO> arr = objectMapper.readValue(arrJson, new TypeReference<List<QuestionDTO>>() {});
+                        log.debug("Parsed questions from wrapped 'content' array: {}", arr);
+                        return arr;
+                    } else if (contentObj instanceof String) {
+                        json = (String) contentObj;
+                    }
+                }
+            } catch (Exception e) {
+                log.debug("Wrapped object parse failed, trying fallback. Error: {}", e.getMessage());
+            }
+            // Rensa whitespace och försök igen
+            json = json.replaceAll("\\n", " ");
+            json = json.replaceAll("\\r", " ");
+            json = json.replaceAll("\\t", " ");
+            log.debug("Final JSON string to parse (questions): {}", json);
+            List<QuestionDTO> list = objectMapper.readValue(json, new TypeReference<List<QuestionDTO>>() {});
+            return list;
+        } catch (Exception e) {
+            if (json != null) {
+                log.error("Failed to parse JSON: {}", json);
+            }
+            log.error("Error details:", e);
+            throw new RuntimeException("Failed to parse AI response (questions): " + e.getMessage(), e);
+        }
+    }
 
     private List<QuestionOptionDTO> parseOptions(String content) {
         String json = content;
+        if (json == null || json.isEmpty()) {
+            throw new RuntimeException("Empty response from AI");
+        }
         try {
-            Map<String, Object> map = objectMapper.readValue(content, new TypeReference<>() {});
-            if (map.containsKey("content")) {
-                Object contentObj = map.get("content");
-                List<Map<String, Object>> contentArr = null;
-                if (contentObj instanceof List<?>) {
-                    // Suppress unchecked warning for cast
-                    @SuppressWarnings("unchecked")
-                    List<Map<String, Object>> tmp = (List<Map<String, Object>>) contentObj;
-                    contentArr = tmp;
-                }
-                if (contentArr != null && !contentArr.isEmpty() && contentArr.get(0).containsKey("text")) {
-                    json = (String) contentArr.get(0).get("text");
-                }
+            // Försök att parsa direkt som en lista av DTO
+            try {
+                List<QuestionOptionDTO> direct = objectMapper.readValue(json, new TypeReference<List<QuestionOptionDTO>>() {});
+                log.debug("Parsed options directly as List<QuestionOptionDTO>: {}", direct);
+                return direct;
+            } catch (Exception e) {
+                log.debug("Direct array parse failed, trying fallback. Error: {}", e.getMessage());
             }
-            json = json.replaceAll("\n", " ");
-            json = json.replaceAll("\r", " ");
-            json = json.replaceAll("\t", " ");
+            // Försök som objekt med content-fält
+            try {
+                Map<String, Object> map = objectMapper.readValue(json, new TypeReference<>() {});
+                if (map.containsKey("content")) {
+                    Object contentObj = map.get("content");
+                    if (contentObj instanceof List<?>) {
+                        String arrJson = objectMapper.writeValueAsString(contentObj);
+                        List<QuestionOptionDTO> arr = objectMapper.readValue(arrJson, new TypeReference<List<QuestionOptionDTO>>() {});
+                        log.debug("Parsed options from wrapped 'content' array: {}", arr);
+                        return arr;
+                    } else if (contentObj instanceof String) {
+                        json = (String) contentObj;
+                    }
+                }
+            } catch (Exception e) {
+                log.debug("Wrapped object parse failed, trying fallback. Error: {}", e.getMessage());
+            }
+            // Rensa whitespace och försök igen
+            json = json.replaceAll("\\n", " ");
+            json = json.replaceAll("\\r", " ");
+            json = json.replaceAll("\\t", " ");
             log.debug("Final JSON string to parse (options): {}", json);
-            List<Map<String, Object>> raw = objectMapper.readValue(json, new TypeReference<List<Map<String, Object>>>() {});
-            List<QuestionOptionDTO> list = new ArrayList<>();
-            for (Map<String, Object> o : raw) {
-                QuestionOptionDTO qo = new QuestionOptionDTO();
-                qo.setOptionLabel((String) o.get("optionLabel"));
-                qo.setOptionText((String) o.get("optionText"));
-                Object corr = o.get("isCorrect");
-                boolean ok = corr instanceof Boolean b ? b : Boolean.parseBoolean(corr.toString());
-                qo.setCorrect(ok);
-                list.add(qo);
-            }
+            List<QuestionOptionDTO> list = objectMapper.readValue(json, new TypeReference<List<QuestionOptionDTO>>() {});
             return list;
         } catch (Exception e) {
             if (json != null) {
@@ -270,105 +330,6 @@ public class OpenAIService {
             }
             log.error("Error details:", e);
             throw new RuntimeException("Failed to parse AI response (options): " + e.getMessage(), e);
-        }
-    }
-
-    private List<QuestionDTO> parseQuestions(String content) {
-        try {
-            // Log original content
-            log.debug("Original content: {}", content);
-            // If content is a Claude API response, extract the JSON string from content[0].text
-            String json = content;
-            try {
-                Map<String, Object> map = objectMapper.readValue(content, new TypeReference<>() {});
-                if (map.containsKey("content")) {
-                    Object contentObj = map.get("content");
-                    List<Map<String, Object>> contentArr = null;
-                    if (contentObj instanceof List<?>) {
-                        // Suppress unchecked warning for cast
-                        @SuppressWarnings("unchecked")
-                        List<Map<String, Object>> tmp = (List<Map<String, Object>>) contentObj;
-                        contentArr = tmp;
-                    }
-                    if (contentArr != null && !contentArr.isEmpty() && contentArr.get(0).containsKey("text")) {
-                        json = (String) contentArr.get(0).get("text");
-                    }
-                }
-            } catch (Exception e) {
-                // Not a Claude API response, treat as raw JSON
-            }
-            // Only whitespace and line breaks are removed to clean up AI output
-            json = json.replaceAll("\n", " ");
-            json = json.replaceAll("\r", " ");
-            json = json.replaceAll("\t", " ");
-            log.debug("Final JSON string to parse: {}", json);
-            try {
-                // Try to parse as list of questions
-                List<Map<String, Object>> raw = objectMapper.readValue(json, new TypeReference<List<Map<String, Object>>>() {});
-                List<QuestionDTO> list = new ArrayList<>();
-                for (Map<String, Object> item : raw) {
-                    QuestionDTO dto = new QuestionDTO();
-                    dto.setQuestionText((String) item.get("questionText"));
-                    dto.setCourseName((String) item.get("courseName"));
-                    log.debug("Processing item: {}", item.toString());
-                    List<Map<String, Object>> optsRaw = new ArrayList<>();
-                    Object options = item.get("options");
-                    if (options instanceof List<?>) {
-                        List<Map<String, Object>> casted = objectMapper.convertValue(options, new TypeReference<List<Map<String, Object>>>() {});
-                        optsRaw = casted;
-                    } else if (options != null) {
-                        Map<String, Object> singleOpt = objectMapper.convertValue(options, new TypeReference<Map<String, Object>>() {});
-                        optsRaw.add(singleOpt);
-                    }
-                    List<QuestionOptionDTO> opts = new ArrayList<>();
-                    for (Map<String, Object> o : optsRaw) {
-                        QuestionOptionDTO qo = new QuestionOptionDTO();
-                        qo.setOptionLabel((String) o.get("optionLabel"));
-                        qo.setOptionText((String) o.get("optionText"));
-                        Object corr = o.get("isCorrect");
-                        boolean ok = corr instanceof Boolean b ? b : Boolean.parseBoolean(corr.toString());
-                        qo.setCorrect(ok);
-                        opts.add(qo);
-                    }
-                    // Shuffle options and reassign option labels
-                    Collections.shuffle(opts);
-                    String[] labels = {"A", "B", "C", "D", "E", "F", "G", "H"};
-                    for (int i = 0; i < opts.size(); i++) {
-                        opts.get(i).setOptionLabel(labels[i]);
-                    }
-                    dto.setOptions(opts);
-                    list.add(dto);
-                }
-                return list;
-            } catch (Exception e) {
-                // If not a list, try to parse as error object
-                try {
-                    Map<String, String> errorObj = objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
-                    if (errorObj != null && errorObj.containsKey("error")) {
-                        log.error("AI responded with error: {}", errorObj.get("error"));
-                        throw new RuntimeException("AI error: " + errorObj.get("error"));
-                    } else {
-                        log.error("Unknown AI response: {}", json);
-                        throw new RuntimeException("Unknown AI response: " + json);
-                    }
-                } catch (Exception ex) {
-                    log.error("Could not parse AI response: {}", json);
-                    throw new RuntimeException("Could not parse AI response: " + json, ex);
-                }
-            }
-        } catch (Exception e) {
-            log.error("Failed to parse JSON: {}", content);
-            log.error("Error details:", e);
-            throw new RuntimeException("Failed to parse AI response: " + e.getMessage(), e);
-        }
-    }
-
-    private void validateInputs(String text, int maxQuestions) {
-        if (text == null || text.isBlank()) {
-            throw new IllegalArgumentException("Text cannot be null or empty");
-        }
-        if (maxQuestions < 1) {
-            throw new IllegalArgumentException("maxQuestions must be at least 1");
         }
     }
 }
