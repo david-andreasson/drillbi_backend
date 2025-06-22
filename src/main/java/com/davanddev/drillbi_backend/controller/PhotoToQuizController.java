@@ -15,7 +15,7 @@ import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 
 @RestController
-@RequestMapping("/api/v2/phototoquiz")
+@RequestMapping("/v2/phototoquiz")
 public class PhotoToQuizController {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -25,10 +25,10 @@ public class PhotoToQuizController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> extractTextFromImage(@RequestParam("file") MultipartFile file) {
         if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body("Ingen fil mottagen.");
+            return ResponseEntity.badRequest().body("No file received.");
         }
         if (file.getSize() > MAX_FILE_SIZE) {
-            return ResponseEntity.badRequest().body("Filen är för stor (max 5 MB).");
+            return ResponseEntity.badRequest().body("File is too large (max 5 MB).");
         }
         boolean allowed = false;
         for (String type : ALLOWED_TYPES) {
@@ -38,17 +38,33 @@ public class PhotoToQuizController {
             }
         }
         if (!allowed) {
-            return ResponseEntity.badRequest().body("Fel filtyp. Endast PNG och JPG/JPEG stöds.");
+            return ResponseEntity.badRequest().body("Invalid file type. Only PNG and JPG/JPEG are supported.");
         }
 
         try {
             BufferedImage image = ImageIO.read(file.getInputStream());
             if (image == null) {
-                return ResponseEntity.badRequest().body("Kunde inte läsa bilden.");
+                return ResponseEntity.badRequest().body("Could not read image.");
             }
             Tesseract tesseract = new Tesseract();
-            tesseract.setDatapath("/usr/share/tessdata"); // Absolut path till språkdata i Docker
-            tesseract.setLanguage("swe+eng"); // Svenska och engelska
+            String tessdataPrefix = System.getenv("TESSDATA_PREFIX");
+            String datapath;
+            if (tessdataPrefix != null && !tessdataPrefix.isEmpty()) {
+                datapath = tessdataPrefix;
+            } else {
+                datapath = "/usr/share/tessdata";
+            }
+            tesseract.setDatapath(datapath);
+            tesseract.setLanguage("swe+eng"); // Swedish and English
+
+            // Check that language files exist
+            java.io.File sweFile = new java.io.File(datapath, "swe.traineddata");
+            java.io.File engFile = new java.io.File(datapath, "eng.traineddata");
+            if (!sweFile.exists() || !engFile.exists()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("OCR error: Could not find swe.traineddata or eng.traineddata in tessdata directory (" + datapath + ")");
+            }
+
             String text = tesseract.doOCR(image);
             return ResponseEntity.ok().body(text);
         } catch (TesseractException | IOException e) {
