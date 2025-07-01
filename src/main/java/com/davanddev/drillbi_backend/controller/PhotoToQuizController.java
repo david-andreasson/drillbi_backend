@@ -15,7 +15,7 @@ import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 
 @RestController
-@RequestMapping("/v2/phototoquiz")
+@RequestMapping("/api/v2/phototoquiz")
 public class PhotoToQuizController {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
