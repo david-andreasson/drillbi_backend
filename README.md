@@ -1,95 +1,58 @@
-# Quiz_API
+# Drillbi – Backend (Spring Boot)
 
-## Overview
+**Drillbi** är ett Java-baserat REST-API byggt med Spring Boot för att ge mig och mina kurskamrater ett enkelt sätt att plugga inför tentor.  
+API:et driver en quiz-applikation som stödjer flera kurser genom att tillhandahålla ändpunkter för att hämta frågor, hantera quiz-sessioner, skicka in svar och autentisera användare via Google OAuth2.
 
-Quiz_API is a Java-based RESTful API built with Spring Boot to provide me and my classmates an easy solution to study for exams. It powers a quiz application that supports multiple courses by providing endpoints for retrieving quiz questions, managing quiz sessions, submitting answers, and authenticating users via Google OAuth2.
+---
 
-## Frontend Integration  
+## Frontend
 
-A React-based frontend is available in a separate repository, here: https://github.com/david-andreasson/quiz_frontend  
-It communicates with this API to deliver a full quiz experience.  
-The Quiz-service is available online at https://david-andreasson.github.io/quiz_frontend    
+En React-baserad frontend finns i ett separat repo: [drillbi_frontend](https://github.com/david-andreasson/drillbi_frontend)  
 
-## Features
+Den kommunicerar med detta API och levererar hela quiz-upplevelsen.
 
-- **Quiz Question Retrieval**  
-  Retrieve quiz questions for a specified course with an order type parameter (`ORDER`, `RANDOM`, or `REVERSE`).
+---
 
-- **Quiz Session Management**  
-  Start new quiz sessions, retrieve the next question, submit answers, and track real-time session statistics (score and error rate). Sessions are managed in a thread-safe manner using a `ConcurrentHashMap`.
+## Live
 
-- **User Authentication**  
-  Authenticate users via Google OAuth2. If a user does not exist, a new account is created and stored in an H2 database. (Currently, all email addresses are allowed; restrictions can be added in the future.)
+Tjänsten finns tillgänglig på: [https://drillbi.se](https://drillbi.se)
 
-- **Token Generation**  
-  JWT tokens are generated using a dedicated `TokenService`. These tokens are used to manage authentication and session state.
+---
 
-- **Logging and Error Handling**  
-  The API uses SLF4J with Logback to log critical operations such as authentication, token generation, and quiz session management. A global exception handler is implemented to capture and log unexpected errors.
+## Funktioner
 
+- Hämta quizfrågor för kurs (ordning: `ORDER`, `RANDOM`, `REVERSE`).  
+- Hantera quiz-sessioner: starta, hämta nästa fråga, skicka svar, statistik (poäng/felprocent).  
+- Användarautentisering via Google OAuth2; nya användare skapas och lagras i **H2**.  
+- **JWT** genereras via dedikerad `TokenService` och används för efterföljande anrop.  
+- Loggning med **SLF4J/Logback** och global exception-handler (`@ControllerAdvice`).  
 
-## API Endpoints
+---
 
-- **Retrieve Questions**  
-  `GET /api/v1/questions?courseName={courseName}&orderType={orderType}`  
-  Returns a list of quiz questions for the specified course and order.
+## Integrationer
 
-- **Start Quiz Session**  
-  `POST /api/v1/quiz/start?courseName={courseName}&orderType={orderType}&startQuestion={startQuestion}`  
-  Starts a new quiz session and returns session data.
+- **Google OAuth2 → JWT** – inloggning i frontend, token utfärdas av backend.  
+- **AI (OpenAI & Anthropic/Claude)** – genererar frågor och förklaringar.  
+- **OCR (Tesseract)** – *"foto-till-quiz"*: text extraheras ur bild (sv/eng) och används som frågeunderlag.  
+- **Stripe (Checkout & webhook)** – premium/prenumeration uppdateras via webhook.  
+- **Databas**: H2 används i projektet.  
 
-- **Get Next Question**  
-  `GET /api/v1/quiz/next?sessionId={sessionId}`  
-  Returns the next question or a message if the quiz is finished.
+---
 
-- **Submit Answer**  
-  `POST /api/v1/quiz/submit?sessionId={sessionId}&answer={answer}`  
-  Submits an answer and returns feedback and stats.
+## Teknik i korthet
 
-- **Get Session Statistics**  
-  `GET /api/v1/quiz/stats?sessionId={sessionId}`  
-  Returns current session statistics (score and error rate).
+- **Java 21**  
+- **Spring Boot** (Web, Security, JPA)  
+- **Maven**  
+- **H2**  
+- **JUnit**  
 
-- **User Login**  
-  `POST /api/v2/auth/login`  
-  Logs in or creates a user based on provided JSON payload.
+---
 
-## Logging and Error Handling
+## Licens
 
-- **Logging**  
-  Uses SLF4J with Logback to log critical operations at various levels (INFO, DEBUG, ERROR).
+Detta projekt är **inte open source**. *All rights reserved.*  
+Koden är publik enbart för visning i utbildnings-/portföljsyfte.  
 
-- **Global Exception Handling**  
-  Captures and logs unexpected exceptions via `@ControllerAdvice` in `GlobalExceptionHandler.java`.
-
-## Dependencies
-
-- Spring Boot
-- Spring Data JPA
-- Hibernate ORM
-- H2 Database
-- Jackson
-- SLF4J & Logback
-- Maven
-
-## Future Development
-
-- **Enhanced Authentication**  
-  Implement email/password auth and domain-based access restrictions.
-
-- **AI Feature**
-Implement AI-feature, with button to let AI explain the quiz question.  
-
-- **Additional Features**  
-  Expand quiz management, add new courses, improve session logic.
-
-## Contact
-
-For questions or suggestions, reach out on [GitHub](https://github.com/david-andreasson).
-
-## License
-
-This project is **not open source**. All rights reserved.  
-You may view the code for educational or demonstration purposes only.  
-Use, distribution, or modification of this code is not permitted without explicit written permission.  
-See the [`LICENSE`](./LICENSE) file for full details.
+Ingen användning, distribution eller modifiering är tillåten utan skriftligt tillstånd.  
+Se `LICENSE` för fullständig text.
